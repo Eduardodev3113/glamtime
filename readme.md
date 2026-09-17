@@ -1,6 +1,6 @@
 # GlamTime — Sistema de Agendamento para Salão de Beleza
 
-![Estrutura](estrutura.png)
+![Estrutura](img/estrutura.png)
 
 Exercício prático de **Web Back-End**: CRUD completo com **PHP 8 + PDO + MySQL + Bootstrap 5.3**, com foco em segurança, regras de negócio reais (conflito de horários) e arquitetura progressiva (DAO, RBAC, transações).
 
