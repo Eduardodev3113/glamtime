@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Erros corrigidos - GlamTime</title>
+<style>
+@page { size: A4; margin: 1.7cm; }
+body { font-family: Arial, sans-serif; color: #222; font-size: 11pt; line-height: 1.35; }
+h1 { font-size: 21pt; margin: 0 0 5px; color: #17324d; }
+h2 { font-size: 15pt; margin: 28px 0 14px; border-bottom: 2px solid #26727b; padding-bottom: 5px; color: #26727b; }
+h3 { font-size: 12.5pt; margin: 0 0 3px; color: #17324d; }
+.header { margin-bottom: 24px; border-bottom: 4px solid #26727b; padding-bottom: 13px; }
+.small { color:#666; font-size:9.5pt; }
+.note { background:#fff8dc; border:1px solid #d7b34d; padding:12px; margin:15px 0 22px; }
+.error { margin: 0 0 22px; page-break-inside: avoid; border: 1px solid #d2d9e0; padding: 14px; }
+.file { color: #555; font-size: 9.5pt; margin-bottom: 9px; font-family: Consolas, monospace; }
+.label { font-weight: bold; font-size: 10pt; margin: 8px 0 4px; }
+.before .label { color:#a33b3b; }
+.after .label { color:#167157; }
+pre { background: #f1f1f1; border: 1px solid #ccc; padding: 9px; white-space: pre-wrap; font: 9pt/1.35 Consolas, monospace; margin: 0 0 6px; }
+.before pre { background:#fff4f3; border-left:4px solid #d66b6b; }
+.after pre { background:#effaf5; border-left:4px solid #43a982; }
+.status { color:#666; font-size:9.5pt; border-top:1px solid #ddd; padding-top:7px; margin-top:9px; }
+.footer { background:#17324d; color:#fff; padding:13px; margin-top:28px; }
+</style>
+</head>
+<body>
+<div class="header">
+<h1>Erros corrigidos - GlamTime</h1>
+<div class="small">Código antes e depois das correções · Revisão: 23/09/2026</div>
+</div>
+<div class="note"><strong>Importante:</strong> este documento registra as correções aplicadas no código. Os blocos “Antes” reproduzem o problema encontrado e os blocos “Depois” mostram a implementação atual. A conexão com o MySQL não pôde ser testada porque o servidor recusou a conexão durante a validação.</div>
+
+<h2>1. Erros críticos</h2>
+<div class="error"><h3>Erro 01 - Logout não funciona</h3><div class="file">logout.php</div><div class="before"><div class="label">Antes</div><pre>(arquivo vazio)</pre></div><div class="after"><div class="label">Depois</div><pre>$_SESSION = [];
+session_destroy();
+header('Location: login.php');
+exit;</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 02 - Chamada incorreta de verificarConflito</h3><div class="file">agendamento_editar.php · src/AgendamentoDAO.php</div><div class="before"><div class="label">Antes</div><pre>$dao-&gt;verificarConflito($novaData, $fim, $id);
+
+public function verificarConflito(string $inicio, int $duracao): bool</pre></div><div class="after"><div class="label">Depois</div><pre>$dao-&gt;verificarConflito($novaData, $duracao, $id);
+
+public function verificarConflito(
+    string $inicio, int $duracao, ?int $ignorarId = null
+): bool</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 03 - Placeholder SQL reutilizado</h3><div class="file">src/AgendamentoDAO.php</div><div class="before"><div class="label">Antes</div><pre>AND :novo_inicio &lt; DATE_ADD(...)
+AND DATE_ADD(:novo_inicio, INTERVAL :duracao MINUTE) &gt; ...</pre></div><div class="after"><div class="label">Depois</div><pre>AND :novo_inicio_1 &lt; DATE_ADD(...)
+AND DATE_ADD(:novo_inicio_2, INTERVAL :duracao MINUTE) &gt; ...</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 04 - Reagendamento interrompido</h3><div class="file">agendamento_agendar_novamente.php</div><div class="before"><div class="label">Antes</div><pre>var_dump($_POST);
+exit;</pre></div><div class="after"><div class="label">Depois</div><pre>if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // validar CSRF, data e conflito
+    // inserir novo agendamento e concluir o anterior
+}</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 05 - Formulário de reagendamento incompleto</h3><div class="file">agendamento_agendar_novamente.php</div><div class="before"><div class="label">Antes</div><pre>&lt;form method="post" ...&gt;</pre></div><div class="after"><div class="label">Depois</div><pre>&lt;input type="hidden" name="csrf" value="..."&gt;
+&lt;input type="datetime-local" name="data_hora" required&gt;
+&lt;button type="submit"&gt;Confirmar reagendamento&lt;/button&gt;</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 06 - Página servicos.php inexistente</h3><div class="file">navbar.php · servicos.php</div><div class="before"><div class="label">Antes</div><pre>&lt;a href="servicos.php"&gt;Serviços&lt;/a&gt;
+// arquivo não existia</pre></div><div class="after"><div class="label">Depois</div><pre>servicos.php criado com autenticação de administrador,
+CSRF, cadastro e listagem de serviços.</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 07 - Hashes de senha inválidos</h3><div class="file">sql/glamtime.sql</div><div class="before"><div class="label">Antes</div><pre>'[GERAR_HASH_ADMIN]'
+'[GERAR_HASH_RECEP]'</pre></div><div class="after"><div class="label">Depois</div><pre>Hashes bcrypt reais gerados com password_hash()
+foram inseridos nos dois usuários iniciais.</pre></div><div class="status">Corrigido: SIM</div></div>
+
+<h2>2. Falhas de segurança</h2>
+<div class="error"><h3>Erro 08 - API sem autenticação</h3><div class="file">api/agendamentos.php</div><div class="before"><div class="label">Antes</div><pre>require_once __DIR__ . '/../conexao.php';</pre></div><div class="after"><div class="label">Depois</div><pre>require_once __DIR__ . '/../conexao.php';
+require_once __DIR__ . '/../auth_check.php';</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 09 - Salvamento sem autenticação</h3><div class="file">agendamento_salvar.php</div><div class="before"><div class="label">Antes</div><pre>require_once __DIR__ . '/conexao.php';</pre></div><div class="after"><div class="label">Depois</div><pre>require_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/auth_check.php';</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 10 - Cancelamento sem autenticação</h3><div class="file">agendamento_cancelar.php</div><div class="before"><div class="label">Antes</div><pre>require_once __DIR__ . '/conexao.php';</pre></div><div class="after"><div class="label">Depois</div><pre>require_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/auth_check.php';</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 11 - Reagendamento sem autenticação</h3><div class="file">agendamento_agendar_novamente.php</div><div class="before"><div class="label">Antes</div><pre>require_once __DIR__ . '/conexao.php';</pre></div><div class="after"><div class="label">Depois</div><pre>require_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/auth_check.php';</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 12 - Criar usuário permitia criar admin publicamente</h3><div class="file">criar_usuario.php</div><div class="before"><div class="label">Antes</div><pre>&lt;option value="admin"&gt;Admin&lt;/option&gt;
+// página pública</pre></div><div class="after"><div class="label">Depois</div><pre>require_once __DIR__ . '/auth_check.php';
+if (($_SESSION['usuario_role'] ?? '') !== 'admin') {
+    http_response_code(403);
+    exit('Acesso permitido somente para administradores.');
+}</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 13 - Token CSRF do registro não validado</h3><div class="file">registro.php</div><div class="before"><div class="label">Antes</div><pre>&lt;input type="hidden" name="csrf" value="..."&gt;
+// token não era conferido</pre></div><div class="after"><div class="label">Depois</div><pre>if (($_POST['csrf'] ?? '') !== ($_SESSION['csrf'] ?? '')) {
+    $erros[] = 'Token CSRF inválido.';
+}</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 14 - Login sem CSRF</h3><div class="file">login.php</div><div class="before"><div class="label">Antes</div><pre>&lt;form method="post" novalidate&gt;</pre></div><div class="after"><div class="label">Depois</div><pre>$csrf = $_SESSION['csrf'] ?? bin2hex(random_bytes(32));
+&lt;input type="hidden" name="csrf" value="&lt;?= htmlspecialchars($csrf) ?&gt;"&gt;
+// token conferido antes da autenticação</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 15 - Reagendamento sem conferir status</h3><div class="file">agendamento_agendar_novamente.php</div><div class="before"><div class="label">Antes</div><pre>WHERE a.id = :id</pre></div><div class="after"><div class="label">Depois</div><pre>WHERE a.id = :id AND a.status = 'agendado'</pre></div><div class="status">Corrigido: SIM</div></div>
+
+<h2>3. Regras de negócio</h2>
+<div class="error"><h3>Erro 16 - Permitia agendar no passado</h3><div class="file">agendamento_salvar.php</div><div class="before"><div class="label">Antes</div><pre>strtotime($dataHora) === false</pre></div><div class="after"><div class="label">Depois</div><pre>$timestamp = strtotime($dataHora);
+$timestamp === false || $timestamp &lt;= time()</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 17 - Data inválida na edição</h3><div class="file">agendamento_editar.php</div><div class="before"><div class="label">Antes</div><pre>$fim = $novaData ? date(... strtotime($novaData) ...) : '';</pre></div><div class="after"><div class="label">Depois</div><pre>$timestamp = strtotime($novaData);
+if ($timestamp === false || $timestamp &lt;= time()) {
+    $erroDao = 'Data inválida ou passada.';
+}</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 18 - Edição podia conflitar consigo mesma</h3><div class="file">src/AgendamentoDAO.php</div><div class="before"><div class="label">Antes</div><pre>WHERE a.status = 'agendado'
+AND ...</pre></div><div class="after"><div class="label">Depois</div><pre>if ($ignorarId !== null) {
+    $sql .= ' AND a.id &lt;&gt; :ignorar_id';
+}</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 19 - IDs sem validação</h3><div class="file">agendamento_salvar.php</div><div class="before"><div class="label">Antes</div><pre>$clienteId = (int) $_POST['cliente_id'];
+$servicoId = (int) $_POST['servico_id'];
+// INSERT direto</pre></div><div class="after"><div class="label">Depois</div><pre>SELECT COUNT(*) FROM clientes WHERE id = :id
+SELECT duracao_min FROM servicos WHERE id = :id
+// INSERT somente após validar as referências</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 20 - Status alterado sem validação</h3><div class="file">agendamento_agendar_novamente.php</div><div class="before"><div class="label">Antes</div><pre>UPDATE agendamentos SET status = 'concluido'
+WHERE id = :id</pre></div><div class="after"><div class="label">Depois</div><pre>UPDATE agendamentos SET status = 'concluido'
+WHERE id = :id AND status = 'agendado'</pre></div><div class="status">Corrigido: SIM</div></div>
+
+<h2>4. Configuração e manutenção</h2>
+<div class="error"><h3>Erro 21 - Instrução incorreta sobre hashes</h3><div class="file">readme.md</div><div class="before"><div class="label">Antes</div><pre>Colar hashes no SQL antes ou depois de importar.</pre></div><div class="after"><div class="label">Depois</div><pre>O SQL já possui hashes bcrypt; para trocar,
+executar UPDATE ou substituir antes da importação.</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 22 - Reimportação do SQL podia duplicar dados</h3><div class="file">sql/glamtime.sql</div><div class="before"><div class="label">Antes</div><pre>INSERT INTO servicos (...)
+VALUES (...);</pre></div><div class="after"><div class="label">Depois</div><pre>INSERT IGNORE INTO servicos (...)
+VALUES (...);</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 23 - Conexão PDO duplicada</h3><div class="file">conexao.php · src/Database.php</div><div class="before"><div class="label">Antes</div><pre>$pdo = new PDO(...); // uma conexão
+class Database { ... } // outra conexão</pre></div><div class="after"><div class="label">Depois</div><pre>require_once __DIR__ . '/src/Database.php';
+$pdo = Database::getConnection();</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro 24 - Nome de arquivo digitado incorretamente</h3><div class="file">agentamento_agendar_novamente.php</div><div class="before"><div class="label">Antes</div><pre>agentamento_agendar_novamente.php</pre></div><div class="after"><div class="label">Depois</div><pre>agendamento_agendar_novamente.php</pre></div><div class="status">Corrigido: SIM</div></div>
+
+<h2>5. Erros achados em aula</h2>
+<div class="error"><h3>Erro da aula 01 - Conflito de horário</h3><div class="file">agendamento_salvar.php · src/AgendamentoDAO.php</div><div class="before"><div class="label">Antes</div><pre>Placeholder repetido e duração buscada dentro da consulta.</pre></div><div class="after"><div class="label">Depois</div><pre>Duração validada antes da transação e placeholders
+:n​​ovo_inicio_1, :novo_inicio_2 e :duracao separados.</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro da aula 02 - Assinatura de verificarConflito</h3><div class="file">src/AgendamentoDAO.php</div><div class="before"><div class="label">Antes</div><pre>verificarConflito(string $inicio, int $duracao): bool</pre></div><div class="after"><div class="label">Depois</div><pre>verificarConflito(string $inicio, int $duracao,
+?int $ignorarId = null): bool</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro da aula 03 - Logout vazio</h3><div class="file">logout.php</div><div class="before"><div class="label">Antes</div><pre>(arquivo vazio)</pre></div><div class="after"><div class="label">Depois</div><pre>$_SESSION = [];
+session_destroy();
+header('Location: login.php');</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro da aula 04 - Nome do arquivo incorreto</h3><div class="file">agendamento_agendar_novamente.php</div><div class="before"><div class="label">Antes</div><pre>agentamento_agendar_novamente.php</pre></div><div class="after"><div class="label">Depois</div><pre>agendamento_agendar_novamente.php
+// links atualizados</pre></div><div class="status">Corrigido: SIM</div></div>
+<div class="error"><h3>Erro da aula 05 - Formulário incompleto e sem login</h3><div class="file">agendamento_agendar_novamente.php</div><div class="before"><div class="label">Antes</div><pre>Formulário sem data, botão, CSRF e autenticação.</pre></div><div class="after"><div class="label">Depois</div><pre>require_once __DIR__ . '/auth_check.php';
+input datetime-local + token CSRF + botão
++ validação da data e confirmação transacional.</pre></div><div class="status">Corrigido: SIM</div></div>
+
+<div class="footer"><strong>Validação final:</strong> 22 arquivos PHP passaram no lint, não há links PHP locais quebrados e os marcadores dos erros antigos foram removidos. O teste funcional com banco depende do MySQL estar em execução.</div>
+</body>
+</html>

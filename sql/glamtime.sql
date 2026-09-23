@@ -45,13 +45,13 @@ CREATE TABLE IF NOT EXISTS agendamentos (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ── DADOS INICIAIS ─────────────────────────────────────────────
-INSERT INTO servicos (nome, duracao_min, preco) VALUES
+INSERT IGNORE INTO servicos (nome, duracao_min, preco) VALUES
 ('Corte Feminino',      45,  60.00),
 ('Escova Modeladora',   30,  40.00),
 ('Coloração Completa', 120, 180.00),
 ('Manicure e Pedicure', 60,  35.00);
 
-INSERT INTO clientes (nome, telefone, email) VALUES
+INSERT IGNORE INTO clientes (nome, telefone, email) VALUES
 ('Mariana Souza',  '(49) 98765-4321', 'mariana@email.com'),
 ('Carlos Eduardo', '(49) 97654-3210', 'carlos.edu@email.com'),
 ('Juliana Paes',   '(49) 96543-2109', 'juliana.p@email.com');
@@ -59,11 +59,11 @@ INSERT INTO clientes (nome, telefone, email) VALUES
 -- SENHAS: rode no terminal e troque o marcador pelo resultado:
 --   php -r "echo password_hash('admin', PASSWORD_DEFAULT), PHP_EOL;"
 --   php -r "echo password_hash('recep123', PASSWORD_DEFAULT), PHP_EOL;"
-INSERT INTO usuarios (nome, email, senha_hash, role) VALUES
-('Administrador Geral', 'admin@glamtime.com',    '[GERAR_HASH_ADMIN]',  'admin'),
-('Bruna Recepcionista', 'recepcao@glamtime.com', '[GERAR_HASH_RECEP]',  'recepcionista');
+INSERT IGNORE INTO usuarios (nome, email, senha_hash, role) VALUES
+('Administrador Geral', 'admin@glamtime.com',    '$2y$10$X3W5nhEL22.ELqPkn0ccmeDPpITfosOD6mlY2ltUiVO/j4pri/Vai',  'admin'),
+('Bruna Recepcionista', 'recepcao@glamtime.com', '$2y$10$RQpFq4IJycLO/hMe4r05OucBrzU6i6ts7yH8xfiZuUxbGmTKzV3gm',  'recepcionista');
 
-INSERT INTO agendamentos (cliente_id, servico_id, data_hora, status) VALUES
+INSERT IGNORE INTO agendamentos (cliente_id, servico_id, data_hora, status) VALUES
 (1, 1, '2026-09-18 10:00:00', 'concluido'),
 (2, 3, '2026-09-18 14:00:00', 'agendado'),
 (3, 4, '2026-09-19 09:30:00', 'agendado');

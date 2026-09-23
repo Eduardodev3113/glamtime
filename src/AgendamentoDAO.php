@@ -54,16 +54,26 @@ class AgendamentoDAO
         return (int) $stmt->fetchColumn();
     }
 
-    public function verificarConflito(string $dataHoraInicio, int $duracaoMin): bool
+    public function verificarConflito(string $dataHoraInicio, int $duracaoMin, ?int $ignorarId = null): bool
     {
-        $stmt = $this->pdo->prepare(
-            "SELECT COUNT(*) FROM agendamentos a
+        $fim = (new DateTimeImmutable($dataHoraInicio))
+            ->modify("+{$duracaoMin} minutes")
+            ->format('Y-m-d H:i:s');
+        $sql = "SELECT COUNT(*) FROM agendamentos a
              JOIN servicos s ON a.servico_id = s.id
              WHERE a.status = 'agendado'
                AND :novo_inicio < DATE_ADD(a.data_hora, INTERVAL s.duracao_min MINUTE)
-               AND DATE_ADD(:novo_inicio, INTERVAL :duracao MINUTE) > a.data_hora"
-        );
-        $stmt->execute([':novo_inicio' => $dataHoraInicio, ':duracao' => $duracaoMin]);
+               AND :novo_fim > a.data_hora";
+        $params = [
+            ':novo_inicio' => $dataHoraInicio,
+            ':novo_fim' => $fim,
+        ];
+        if ($ignorarId !== null) {
+            $sql .= ' AND a.id <> :ignorar_id';
+            $params[':ignorar_id'] = $ignorarId;
+        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
         return (int) $stmt->fetchColumn() > 0;
     }
 }

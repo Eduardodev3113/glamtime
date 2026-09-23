@@ -5,12 +5,17 @@ require_once __DIR__ . '/conexao.php';
 if (isset($_SESSION['usuario_id'])) { header('Location: index.php'); exit; }
 
 $erro = null;
+$csrf = $_SESSION['csrf'] ?? ($_SESSION['csrf'] = bin2hex(random_bytes(32)));
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  if (($_POST['csrf'] ?? '') !== $csrf) {
+    $erro = 'Token inválido. Recarregue a página e tente novamente.';
+  }
+
     $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
     $senha = $_POST['senha'] ?? '';
 
-    if ($email && $senha !== '') {
+    if (!$erro && $email && $senha !== '') {
         // Prepared statement: dado nunca vira parte do SQL
         $stmt = $pdo->prepare("SELECT id, nome, senha_hash, role FROM usuarios WHERE email = :email LIMIT 1");
         $stmt->execute([':email' => $email]);
@@ -46,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if ($erro): ?><div class="alert alert-danger"><?= htmlspecialchars($erro) ?></div><?php endif; ?>
 
         <form method="post" novalidate>
+          <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf) ?>">
           <div class="mb-3">
             <input class="form-control" type="email" name="email" placeholder="E-mail" required autofocus>
           </div>

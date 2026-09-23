@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/auth_check.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || ($_POST['csrf'] ?? '') !== ($_SESSION['csrf'] ?? '')) {
     header('Location: agendamentos.php'); exit;

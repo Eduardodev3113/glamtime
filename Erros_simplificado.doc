@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Erros - GlamTime</title>
+<style>
+@page { size: A4; margin: 1.8cm; }
+body { font-family: Arial, sans-serif; color: #222; font-size: 11pt; line-height: 1.35; }
+h1 { font-size: 20pt; margin: 0 0 4px; }
+h2 { font-size: 15pt; margin: 28px 0 14px; border-bottom: 1px solid #999; padding-bottom: 4px; }
+h3 { font-size: 12.5pt; margin: 0 0 3px; }
+.file { color: #555; font-size: 9.5pt; margin-bottom: 10px; }
+.error { margin: 0 0 22px; page-break-inside: avoid; }
+.label { font-weight: bold; font-size: 10pt; margin: 8px 0 4px; }
+pre { background: #f1f1f1; border: 1px solid #ccc; padding: 9px; white-space: pre-wrap; font: 9pt/1.35 Consolas, monospace; margin: 0 0 6px; }
+.lesson-photo { max-width: 100%; border: 1px solid #ccc; margin: 0 0 8px; }
+.header { margin-bottom: 25px; }
+.small { color:#666; font-size:9.5pt; }
+</style>
+</head>
+<body>
+<div class="header">
+<h1>Erros - GlamTime</h1>
+<div class="small">Código antes e depois das correções.</div>
+</div>
+<h2>1. Erros críticos</h2>
+<div class="error">
+<h3>Erro 01 - Logout não funciona</h3>
+<div class="file">Arquivo: logout.php</div>
+<div class="codepart before"><pre>(arquivo vazio)</pre></div>
+<div class="codepart after"><pre>&lt;?php
+declare(strict_types=1);
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$_SESSION = [];
+session_destroy();
+header('Location: login.php');
+exit;</pre></div>
+</div>
+<div class="error">
+<h3>Erro 02 - Chamada incorreta de verificarConflito</h3>
+<div class="file">agendamento_editar.php:32 e src/AgendamentoDAO.php:57</div>
+<div class="codepart before"><pre>$dao-&gt;verificarConflito($novaData, $fim, $id);
+
+public function verificarConflito(string $dataHoraInicio, int $duracaoMin): bool</pre></div>
+<div class="codepart after"><pre>$dao-&gt;verificarConflito($novaData, $duracao, $id);
+
+public function verificarConflito(
+    string $dataHoraInicio,
+    int $duracaoMin,
+    ?int $ignorarId = null
+): bool</pre></div>
+</div>
+<div class="error">
+<h3>Erro 03 - Placeholder SQL reutilizado</h3>
+<div class="file">Arquivo: src/AgendamentoDAO.php:64</div>
+<div class="codepart before"><pre>AND :novo_inicio &lt; DATE_ADD(...)
+AND DATE_ADD(:novo_inicio, INTERVAL :duracao MINUTE) &gt; ...</pre></div>
+<div class="codepart after"><pre>AND :novo_inicio_1 &lt; DATE_ADD(...)
+AND DATE_ADD(:novo_inicio_2, INTERVAL :duracao MINUTE) &gt; ...</pre></div>
+</div>
+<div class="error">
+<h3>Erro 04 - Reagendamento interrompido por var_dump e exit</h3>
+<div class="file">Arquivo: agentamento_agendar_novamente.php:17-18</div>
+<div class="codepart before"><pre>var_dump($_POST);
+exit;</pre></div>
+<div class="codepart after"><pre>if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // validar o formulário e processar o reagendamento
+}</pre></div>
+</div>
+<div class="error">
+<h3>Erro 05 - Formulário de reagendamento incompleto</h3>
+<div class="file">Arquivo: agentamento_agendar_novamente.php:50</div>
+<div class="codepart before"><pre>&lt;form method="post" onsubmit="return confirm('Criar novo agendamento?')" class="d-inline"&gt;</pre></div>
+<div class="codepart after"><pre>&lt;form method="post"&gt;
+  &lt;input type="hidden" name="csrf" value="&lt;?= htmlspecialchars($csrf) ?&gt;"&gt;
+  &lt;input type="datetime-local" name="data_hora" required&gt;
+  &lt;button type="submit"&gt;Confirmar reagendamento&lt;/button&gt;
+&lt;/form&gt;</pre></div>
+</div>
+<div class="error">
+<h3>Erro 06 - Página servicos.php inexistente</h3>
+<div class="file">Arquivo: navbar.php:14</div>
+<div class="codepart before"><pre>&lt;a class="nav-link" href="servicos.php"&gt;Serviços&lt;/a&gt;</pre></div>
+<div class="codepart after"><pre>Opção A: criar a página servicos.php.
+
+Opção B: remover o link até a página existir.</pre></div>
+</div>
+<div class="error">
+<h3>Erro 07 - Hashes de senha inválidos no SQL</h3>
+<div class="file">Arquivo: sql/glamtime.sql:60-61</div>
+<div class="codepart before"><pre>'[GERAR_HASH_ADMIN]'
+'[GERAR_HASH_RECEP]'</pre></div>
+<div class="codepart after"><pre>'$2y$10$HASH_BCRYPT_ADMIN_REAL'
+'$2y$10$HASH_BCRYPT_RECEP_REAL'</pre></div>
+</div>
+<h2>2. Falhas de segurança</h2>
+<div class="error">
+<h3>Erro 08 - API sem autenticação</h3>
+<div class="file">Arquivo: api/agendamentos.php:2</div>
+<div class="codepart before"><pre>require_once __DIR__ . '/../conexao.php';</pre></div>
+<div class="codepart after"><pre>require_once __DIR__ . '/../conexao.php';
+require_once __DIR__ . '/../auth_check.php';</pre></div>
+</div>
+<div class="error">
+<h3>Erro 09 - Salvamento sem autenticação</h3>
+<div class="file">Arquivo: agendamento_salvar.php:2</div>
+<div class="codepart before"><pre>require_once __DIR__ . '/conexao.php';</pre></div>
+<div class="codepart after"><pre>require_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/auth_check.php';</pre></div>
+</div>
+<div class="error">
+<h3>Erro 10 - Cancelamento sem autenticação</h3>
+<div class="file">Arquivo: agendamento_cancelar.php:2</div>
+<div class="codepart before"><pre>require_once __DIR__ . '/conexao.php';</pre></div>
+<div class="codepart after"><pre>require_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/auth_check.php';</pre></div>
+</div>
+<div class="error">
+<h3>Erro 11 - Reagendamento sem autenticação</h3>
+<div class="file">Arquivo: agentamento_agendar_novamente.php:2</div>
+<div class="codepart before"><pre>require_once __DIR__ . '/conexao.php';</pre></div>
+<div class="codepart after"><pre>require_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/auth_check.php';</pre></div>
+</div>
+<div class="error">
+<h3>Erro 12 - Criar usuário permite criar admin publicamente</h3>
+<div class="file">Arquivo: criar_usuario.php:11</div>
+<div class="codepart before"><pre>&lt;select name="role"&gt;
+  &lt;option value="recepcionista"&gt;Recepcionista&lt;/option&gt;
+  &lt;option value="admin"&gt;Admin&lt;/option&gt;
+&lt;/select&gt;</pre></div>
+<div class="codepart after"><pre>Remover o arquivo após o setup
+ou proteger a página com autenticação
+exclusiva de administrador.</pre></div>
+</div>
+<div class="error">
+<h3>Erro 13 - Token CSRF do registro não validado</h3>
+<div class="file">Arquivo: registro.php:80</div>
+<div class="codepart before"><pre>&lt;input type="hidden" name="csrf" value="..."&gt;
+
+// nenhuma validação do token no POST</pre></div>
+<div class="codepart after"><pre>if (($_POST['csrf'] ?? '') !== ($_SESSION['csrf'] ?? '')) {
+    die('Token CSRF inválido.');
+}</pre></div>
+</div>
+<div class="error">
+<h3>Erro 14 - Login sem CSRF</h3>
+<div class="file">Arquivo: login.php:47</div>
+<div class="codepart before"><pre>&lt;form method="post" novalidate&gt;</pre></div>
+<div class="codepart after"><pre>$csrf = $_SESSION['csrf'] ??= bin2hex(random_bytes(32));
+
+&lt;form method="post" novalidate&gt;
+  &lt;input type="hidden" name="csrf" value="&lt;?= htmlspecialchars($csrf) ?&gt;"&gt;</pre></div>
+</div>
+<div class="error">
+<h3>Erro 15 - Reagendamento sem conferir status</h3>
+<div class="file">Arquivo: agentamento_agendar_novamente.php:7</div>
+<div class="codepart before"><pre>SELECT cliente_id, servico_id
+FROM agendamentos WHERE id = :id</pre></div>
+<div class="codepart after"><pre>SELECT cliente_id, servico_id
+FROM agendamentos
+WHERE id = :id AND status = 'agendado'</pre></div>
+</div>
+<h2>3. Regras de negócio</h2>
+<div class="error">
+<h3>Erro 16 - Permite agendar no passado</h3>
+<div class="file">Arquivo: agendamento_salvar.php:8</div>
+<div class="codepart before"><pre>strtotime($dataHora) === false</pre></div>
+<div class="codepart after"><pre>$timestamp = strtotime($dataHora);
+if ($timestamp === false || $timestamp &lt;= time()) {
+    $_SESSION['flash'] = 'Data inválida ou passada.';
+    header('Location: agendamento_form.php');
+    exit;
+}</pre></div>
+</div>
+<div class="error">
+<h3>Erro 17 - Data inválida na edição</h3>
+<div class="file">Arquivo: agendamento_editar.php:24-32</div>
+<div class="codepart before"><pre>$fim = $novaData ? date(
+    'Y-m-d H:i:s',
+    strtotime($novaData) + $duracao * 60
+) : '';</pre></div>
+<div class="codepart after"><pre>$timestamp = strtotime($novaData);
+if ($timestamp === false || $timestamp &lt;= time()) {
+    $erroDao = 'Data inválida ou passada.';
+} else {
+    $fim = date('Y-m-d H:i:s', $timestamp + $duracao * 60);
+}</pre></div>
+</div>
+<div class="error">
+<h3>Erro 18 - Edição pode conflitar consigo mesma</h3>
+<div class="file">Arquivo: src/AgendamentoDAO.php:57</div>
+<div class="codepart before"><pre>WHERE a.status = 'agendado'
+  AND ...</pre></div>
+<div class="codepart after"><pre>WHERE a.status = 'agendado'
+  AND a.id &lt;&gt; :ignorar_id
+  AND ...</pre></div>
+</div>
+<div class="error">
+<h3>Erro 19 - IDs de cliente e serviço sem validação</h3>
+<div class="file">Arquivo: agendamento_salvar.php:8 e 30</div>
+<div class="codepart before"><pre>$clienteId = (int) ($_POST['cliente_id'] ?? 0);
+$servicoId = (int) ($_POST['servico_id'] ?? 0);
+// INSERT direto</pre></div>
+<div class="codepart after"><pre>Consultar clientes WHERE id = :id.
+Consultar servicos WHERE id = :id.
+Somente executar o INSERT se ambos existirem.</pre></div>
+</div>
+<div class="error">
+<h3>Erro 20 - Status alterado sem validação</h3>
+<div class="file">Arquivo: agentamento_agendar_novamente.php:38</div>
+<div class="codepart before"><pre>UPDATE agendamentos
+SET status = 'concluido'
+WHERE id = :id</pre></div>
+<div class="codepart after"><pre>UPDATE agendamentos
+SET status = 'concluido'
+WHERE id = :id AND status = 'agendado'</pre></div>
+</div>
+<h2>4. Configuração e manutenção</h2>
+<div class="error">
+<h3>Erro 21 - Procedimento incorreto para hashes no README</h3>
+<div class="file">Arquivo: readme.md</div>
+<div class="codepart before"><pre>Gere os hashes e cole no SQL
+antes ou depois de importar.</pre></div>
+<div class="codepart after"><pre>Gere os hashes antes da importação
+ou execute UPDATE nos usuários já criados.</pre></div>
+</div>
+<div class="error">
+<h3>Erro 22 - Reimportação do SQL pode duplicar dados</h3>
+<div class="file">Arquivo: sql/glamtime.sql:65</div>
+<div class="codepart before"><pre>INSERT INTO servicos (nome, duracao_min, preco)
+VALUES (...);</pre></div>
+<div class="codepart after"><pre>INSERT INTO servicos (nome, duracao_min, preco)
+VALUES (...)
+ON DUPLICATE KEY UPDATE
+  duracao_min = VALUES(duracao_min),
+  preco = VALUES(preco);</pre></div>
+</div>
+<div class="error">
+<h3>Erro 23 - Conexão PDO duplicada</h3>
+<div class="file">Arquivos: conexao.php e src/Database.php</div>
+<div class="codepart before"><pre>$pdo = new PDO(...); // conexao.php
+
+class Database { ... } // Database.php</pre></div>
+<div class="codepart after"><pre>Escolher uma única implementação.
+Usar essa conexão em todos os arquivos.
+Remover a implementação não utilizada.</pre></div>
+</div>
+<div class="error">
+<h3>Erro 24 - Erro de digitação no nome do arquivo</h3>
+<div class="file">Arquivo: agentamento_agendar_novamente.php</div>
+<div class="codepart before"><pre>agentamento_agendar_novamente.php</pre></div>
+<div class="codepart after"><pre>agendamento_agendar_novamente.php
+
+Atualizar todos os links que usam o nome antigo.</pre></div>
+</div>
+<h2>5. Erros achados em aula</h2>
+<div class="error">
+<h3>Erro da aula 01 - Consulta de conflito de horário</h3>
+<div class="file">Arquivos relacionados: agendamento_salvar.php e src/AgendamentoDAO.php</div>
+<div class="codepart before"><img class="lesson-photo" src="img/erros-aula/image3.png" alt="Print do código antigo da consulta de conflito"></div>
+<div class="codepart after"><img class="lesson-photo" src="img/erros-aula/image2.png" alt="Print do código corrigido da consulta de conflito"></div>
+</div>
+<div class="error">
+<h3>Erro da aula 02 - Assinatura do método verificarConflito</h3>
+<div class="file">Arquivo: src/AgendamentoDAO.php</div>
+<div class="codepart before"><img class="lesson-photo" src="img/erros-aula/image6.png" alt="Print da assinatura antiga do método verificarConflito"></div>
+<div class="codepart after"><img class="lesson-photo" src="img/erros-aula/image10.png" alt="Print da assinatura corrigida do método verificarConflito"></div>
+</div>
+<div class="error">
+<h3>Erro da aula 03 - Logout vazio</h3>
+<div class="file">Arquivo: logout.php</div>
+<div class="codepart before"><pre>(arquivo vazio)</pre></div>
+<div class="codepart after"><img class="lesson-photo" src="img/erros-aula/image8.png" alt="Print do logout corrigido"></div>
+</div>
+<div class="error">
+<h3>Erro da aula 04 - Nome do arquivo incorreto</h3>
+<div class="file">Arquivo: agentamento_agendar_novamente.php</div>
+<div class="codepart before"><img class="lesson-photo" src="img/erros-aula/image7.png" alt="Print do nome incorreto do arquivo"></div>
+<div class="codepart after"><img class="lesson-photo" src="img/erros-aula/image9.png" alt="Print do nome corrigido do arquivo"></div>
+</div>
+<div class="error">
+<h3>Erro da aula 05 - Arquivo sem formulário completo e sem exigir login</h3>
+<div class="file">Arquivo: agentamento_agendar_novamente.php</div>
+<div class="codepart before"><img class="lesson-photo" src="img/erros-aula/image4.png" alt="Print do formulário incompleto"></div>
+<div class="codepart after"><img class="lesson-photo" src="img/erros-aula/image5.png" alt="Print do formulário completo corrigido">
+<img class="lesson-photo" src="img/erros-aula/image1.png" alt="Print do arquivo corrigido com autenticação"></div>
+</div>
+</body></html>

@@ -25,6 +25,10 @@ function validarForcaSenha(string $senha): ?string
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  if (($_POST['csrf'] ?? '') !== ($_SESSION['csrf'] ?? '')) {
+    $erros[] = 'Token CSRF inválido. Recarregue a página e tente novamente.';
+  }
+
     $nome     = trim($_POST['nome'] ?? '');
     $email    = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
     $senha    = $_POST['senha'] ?? '';

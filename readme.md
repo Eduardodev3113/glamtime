@@ -47,10 +47,9 @@ git clone https://github.com/SU-USUARIO/glamtime.git
 ```
 mysql -u root < sql/glamtime.sql
 ```
-3. Gere os hashes das senhas dos usuários e cole no lugar dos marcadores `[GERAR_HASH_ADMIN]` e `[GERAR_HASH_RECEP]` em `sql/glamtime.sql` (antes ou depois de importar):
+3. O SQL já contém hashes bcrypt para os usuários de demonstração. Para trocar as senhas, gere novos hashes e execute um `UPDATE` na tabela `usuarios` (ou substitua os hashes antes de importar):
 ```
-php -r "echo password_hash('admin', PASSWORD_DEFAULT), PHP_EOL;"
-php -r "echo password_hash('recep123', PASSWORD_DEFAULT), PHP_EOL;"
+php -r "echo password_hash('nova-senha', PASSWORD_DEFAULT), PHP_EOL;"
 ```
 4. Crie o `.env` na raiz:
 ```

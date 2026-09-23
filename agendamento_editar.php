@@ -24,13 +24,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $durStmt = $pdo->prepare("SELECT duracao_min FROM servicos WHERE id = :id");
     $durStmt->execute([':id' => $novoServ]);
     $duracao = (int) $durStmt->fetchColumn();
-    $fim = $novaData ? date('Y-m-d H:i:s', strtotime($novaData) + $duracao * 60) : '';
+    $clienteStmt = $pdo->prepare("SELECT COUNT(*) FROM clientes WHERE id = :id");
+    $clienteStmt->execute([':id' => $novoCliente]);
+    $clienteExiste = (int) $clienteStmt->fetchColumn() > 0;
+    $timestamp = strtotime($novaData);
+    $fim = $timestamp !== false ? date('Y-m-d H:i:s', $timestamp + $duracao * 60) : '';
 
     require_once __DIR__ . '/src/AgendamentoDAO.php';
     $dao = new AgendamentoDAO($pdo);
 
-    if ($novaData === '' || $duracao === 0 || $dao->verificarConflito($novaData, $fim, $id)) {
-        $erroDao = 'Horário conflita com outro agendamento ativo.';
+    if ($timestamp === false || $timestamp <= time()) {
+      $erroDao = 'Data inválida ou passada.';
+    } elseif (!$clienteExiste || $duracao === 0) {
+      $erroDao = 'Cliente ou serviço inválido.';
+    } elseif ($dao->verificarConflito($novaData, $duracao, $id)) {
+      $erroDao = 'Horário conflita com outro agendamento ativo.';
     } else {
         $upd = $pdo->prepare(
             "UPDATE agendamentos SET cliente_id = :c, servico_id = :s, data_hora = :d WHERE id = :id"

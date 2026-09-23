@@ -9,6 +9,12 @@ declare(strict_types=1);
  */
 
 require_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/auth_check.php';
+
+if (($_SESSION['usuario_role'] ?? '') !== 'admin') {
+  http_response_code(403);
+  exit('Acesso permitido somente para administradores.');
+}
 
 /**
  * Valida a força da senha conforme política OWASP mínima.
@@ -42,6 +48,11 @@ $nome  = $email = $role = '';
 $senha = $confirmar = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $csrf = $_SESSION['csrf'] ?? ($_SESSION['csrf'] = bin2hex(random_bytes(32)));
+  if (($_POST['csrf'] ?? '') !== $csrf) {
+    $erros[] = 'Token CSRF inválido.';
+  }
+
     $nome     = trim($_POST['nome'] ?? '');
     $email    = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
     $role     = ($_POST['role'] ?? 'recepcionista') === 'admin' ? 'admin' : 'recepcionista';
@@ -106,7 +117,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <div class="alert alert-success"><?= htmlspecialchars($sucesso) ?></div>
         <?php endif; ?>
 
-        <form method="post">  <!-- token CSRF desnecessário: página só existe no setup -->
+        <form method="post">
+          <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? ($_SESSION['csrf'] = bin2hex(random_bytes(32)))) ?>">
           <div class="mb-2"><input class="form-control" name="nome" placeholder="Nome" value="<?= htmlspecialchars($nome) ?>" required></div>
           <div class="mb-2"><input class="form-control" type="email" name="email" placeholder="E-mail" value="<?= htmlspecialchars($email) ?>" required></div>
           <div class="mb-2"><select class="form-select" name="role">
