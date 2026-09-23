@@ -20,8 +20,8 @@ try {
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM agendamentos a JOIN servicos s ON a.servico_id = s.id
         WHERE a.status = 'agendado'
           AND :novo_inicio < DATE_ADD(a.data_hora, INTERVAL s.duracao_min MINUTE)
-          AND DATE_ADD(:novo_inicio, INTERVAL (SELECT duracao_min FROM servicos WHERE id = :serv) MINUTE) > a.data_hora");
-    $stmt->execute([':novo_inicio' => $dataHora, ':serv' => $servicoId]);
+          AND DATE_ADD(:novo_inicio2, INTERVAL (SELECT duracao_min FROM servicos WHERE id = :serv) MINUTE) > a.data_hora");
+    $stmt->execute([':novo_inicio' => $dataHora, ':novo_inicio2' => $dataHora, ':serv' => $servicoId]);
 
     if ((int) $stmt->fetchColumn() > 0) {
         throw new RuntimeException('Horário conflita com outro agendamento ativo.');
